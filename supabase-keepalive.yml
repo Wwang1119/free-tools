@@ -1,0 +1,21 @@
+name: supabase-keepalive
+# Supabase Free projects pause after ~7 days without database activity.
+# This ping counts as activity. Runs every 3 days; also runnable manually.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 */3 * *"
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then echo "SUPABASE_URL secret not set, skipping"; exit 0; fi
+          curl -s -o /dev/null -w "%{http_code}\n" \
+            "$SUPABASE_URL/rest/v1/muse_test?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
